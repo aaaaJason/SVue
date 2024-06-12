@@ -9,6 +9,7 @@
     "deploy": "vue-cli-service build --mode production && gh-pages -d dist"
   },
   "dependencies": {
+    "axios": "^1.7.2",
     "core-js": "^3.8.3",
     "gh-pages": "^6.1.1",
     "vue": "^2.6.14",
