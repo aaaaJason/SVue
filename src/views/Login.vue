@@ -80,26 +80,50 @@
   </style>
   
 
-<script>
-export default {
-  data() {
-    return {
-      username: '',
-      password: '',
-      error: ''
-    };
-  },
-  methods: {
-    login() {
-      // 在這裡進行簡單的登錄模擬
-      if (this.username === 'user' && this.password === '1234') {
+  <script>
+  import { setUser } from '@/LoginUser';
+  export default {
+    data() {
+      return {
+        username: '',
+        password: '',
+        error: ''
+      };
+    },
+    methods: {
+      async login() {
+  try {
+    const response = await fetch('http://192.168.1.150:3000/userslogin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: this.username,
+        password: this.password
+      })
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      // 根據後端回傳的資料來判斷登入成功或失敗
+      if (response.ok && data.success) {
+        setUser(data.user); // 使用 Composition API 設置用戶信息
         // 登錄成功，跳轉到首頁或其他頁面
         this.$router.push('/main');
       } else {
         // 登錄失敗，顯示錯誤信息
-        this.error = '帳密錯誤';
+        this.error = data.error || '未知錯誤';
       }
+    } else {
+      // 當 response.ok 為 false 時，處理其他錯誤情況
+      this.error = data.error || '未知錯誤';
     }
+  } catch (error) {
+    console.error('Error:', error);
+    this.error = '伺服器錯誤';
   }
-};
-</script>
+}
+    }
+  };
+  </script>

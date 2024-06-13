@@ -2,6 +2,12 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import Login from '../views/Login.vue';
+import useredit from '../views/useredit.vue';
+import storeedit from '../views/storeedit.vue';
+import insertstore from '../views/insertstore.vue';
+import updatestore from '../views/updatestore.vue';
+import insertuser from '../views/insertuser.vue';
+import updateuser from '../views/updateuser.vue';
 
 Vue.use(VueRouter)
 
@@ -17,12 +23,35 @@ const routes = [
     component: Login
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
+    path: '/useredit',
+    name: 'useredit',
+    component: useredit
+  },
+  {
+    path: '/storeedit',
+    name: 'storeedit',
+    component: storeedit
+  }
+  ,
+  {
+    path: '/insertstore',
+    name: 'insertstore',
+    component: insertstore
+  },
+  {
+    path: '/updatestore',
+    name: 'updatestore',
+    component: updatestore
+  },
+  {
+    path: '/insertuser',
+    name: 'insertuser',
+    component: insertuser
+  },
+  {
+    path: '/updateuser',
+    name: 'updateuser',
+    component: updateuser
   }
 ]
 

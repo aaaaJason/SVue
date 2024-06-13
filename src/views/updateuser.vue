@@ -1,13 +1,13 @@
 <template>
   <div class="button-container">
     <CustomButton class="user-button" @click="useredit">
-      <v-icon color="error" :size="60">mdi mdi-account-edit</v-icon>
-      使用者帳號管理
+      <v-icon color="error" :size="60">mdi mdi-lock-check</v-icon>
+      使用者變更密碼
     </CustomButton>
     <br>
-    <CustomButton class="store-button" @click="storeedit">
-      <v-icon color="error" :size="60">mdi mdi-store-cog-outline</v-icon>
-      商家帳號管理
+    <CustomButton class="user-button"  @click="storeedit">
+      <v-icon color="error" :size="60">mdi mdi-account-multiple-plus</v-icon>
+      使用者新增帳號
     </CustomButton>
   </div>
 </template>
@@ -22,12 +22,10 @@ export default {
   methods: {
     useredit() {
       console.log('Redirecting to User Management');
-      this.$router.push('/useredit');
       // 實現導航或其他邏輯
     },
     storeedit() {
       console.log('Redirecting to Merchant Management');
-      this.$router.push('/storeedit');
       // 實現導航或其他邏輯
     }
   }
@@ -40,22 +38,12 @@ export default {
   flex-direction: column; /* 垂直排列 */
   align-items: center; /* 水平居中對齊 */
 }
-
 .user-button {
   background-color: #e0f7fa; /* 自定義背景色 */
   color: #00796b; /* 自定義文本顏色 */
 }
-
-.store-button {
-  background-color: #fff9c4; /* 自定義背景色 */
-  color: #f57f17; /* 自定義文本顏色 */
-}
 .user-button:hover {
   background-color: #b2ebf2; /* 鼠標懸停時的背景色 */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 鼠標懸停時的陰影效果 */
-}
-.store-button:hover {
-  background-color: #fff176; /* 鼠標懸停時的背景色 */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 鼠標懸停時的陰影效果 */
 }
 

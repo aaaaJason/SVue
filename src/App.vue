@@ -5,36 +5,12 @@
       color="primary"
       dark
     >
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
-
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
-      </div>
-
+      <v-toolbar-title>停車場帳號管理系統</v-toolbar-title>
       <v-spacer></v-spacer>
-
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
+    <div v-if="isAuthenticated">
+      <span class="username">使用者：{{ username }}</span>
+    <v-btn @click="handleLogout" class="logout-button">登出</v-btn>
+    </div>
     </v-app-bar>
 
     <v-main>
@@ -44,12 +20,40 @@
 </template>
 
 <script>
-
+import { isAuthenticated, getUsername, logout } from '@/LoginUser';
+import { computed } from 'vue';
 export default {
   name: 'App',
+  setup() {
+    const username = computed(() => getUsername.value);
 
+    const handleLogout = () => {
+      logout();
+      window.location.href = '/';
+    };
+
+    return {
+      isAuthenticated,
+      username,
+      handleLogout
+    };
+  },
   data: () => ({
     //
   }),
 };
 </script>
+<style scoped>
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.username {
+  margin-right: 20px; /* 你可以根據需求調整這裡的數值 */
+}
+
+.logout-button {
+  margin-left: 20px; /* 這裡也可以根據需求調整 */
+}
+</style>
