@@ -56,4 +56,5 @@ export default {
 .logout-button {
   margin-left: 20px; /* 這裡也可以根據需求調整 */
 }
+
 </style>
