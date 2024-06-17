@@ -92,7 +92,7 @@ export default {
           window.alert('更新失敗: 未找到對應的商家');
         } else {
           console.error('更新出錯:', error);
-          window.alert('更新失敗，請稍後再試');
+          window.alert('更新失敗 請稍後再試');
         }
       }
     },
