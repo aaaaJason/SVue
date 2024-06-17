@@ -24,60 +24,7 @@
     </div>
   </template>
   
-  <style>
-  .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-  
-  .login-table {
-    width: 30%;
-    height: 40%;
-    background-color: #ccc;
-  }
-  
-  .input-container,
-  .button-container {
-    padding: 10px;
-  }
-  
-  .login-button {
-    background-color: #470ceb;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    transition-duration: 0.4s;
-    cursor: pointer;
-    border-radius: 12px;
-  }
-  
-  .login-button:hover {
-    background-color:#1b28dd ;
-  }
-  
-  /* 自定義輸入框樣式 */
-  .custom-input {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-    background-color: white; /* 將背景色設置為白色 */
-  }
-  
-  /* 輸入框聚焦時的樣式 */
-  .custom-input:focus {
-    outline: none;
-    border-color: #470ceb;
-    box-shadow: 0 0 5px #470ceb;
-  }
-  </style>
+
   
 
   <script>
@@ -127,3 +74,57 @@
     }
   };
   </script>
+   <style scoped>
+   .container {
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     height: 100vh;
+   }
+   
+   .login-table {
+     width: 30%;
+     height: 40%;
+     background-color: #ccc;
+   }
+   
+   .input-container,
+   .button-container {
+     padding: 10px;
+   }
+   
+   .login-button {
+     background-color: #4ae252;
+     border: none;
+     color: white;
+     padding: 10px 20px;
+     text-align: center;
+     text-decoration: none;
+     display: inline-block;
+     font-size: 16px;
+     margin: 4px 2px;
+     transition-duration: 0.4s;
+     cursor: pointer;
+     border-radius: 12px;
+   }
+   
+   .login-button:hover {
+     background-color:#0b5c0b ;
+   }
+   
+   /* 自定義輸入框樣式 */
+   .custom-input {
+     padding: 8px;
+     border: 1px solid #ccc;
+     border-radius: 5px;
+     font-size: 16px;
+     background-color: white; /* 將背景色設置為白色 */
+   }
+   
+   /* 輸入框聚焦時的樣式 */
+   .custom-input:focus {
+     outline: none;
+     border-color: #470ceb;
+     box-shadow: 0 0 5px #470ceb;
+   }
+   </style>

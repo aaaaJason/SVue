@@ -21,6 +21,7 @@
 
 <script>
 import axios from 'axios';
+import { logout } from '@/LoginUser';
 
 export default {
   data() {
@@ -31,18 +32,13 @@ export default {
       passwordsMatch: null
     };
   },
-  computed: {
-    
-  },
   methods: {
-   
     async handleSubmit() {
-
       this.passwordsMatch = this.newPassword === this.confirmPassword;
       if (!this.passwordsMatch && this.confirmPassword) {
-      window.alert('兩次密碼輸入不同');
-      return
-    }
+        window.alert('兩次密碼輸入不同');
+        return;
+      }
 
       try {
         const response = await axios.put('https://192.168.1.150:443/updateuser', {
@@ -52,20 +48,30 @@ export default {
 
         if (response.data.message === '密碼更新成功') {
           alert('密碼更新成功');
-          window.location.reload(); // 更新成功後重新加載頁面
+          this.handleLogout(); // 更新成功後登出
         } else {
           alert('密碼更新失敗: ' + response.data.message);
         }
       } catch (error) {
-        console.error('更新密碼時出錯:', error);
-        alert('更新密碼失敗，請稍後再試');
+        if (error.response && error.response.status === 500) {
+          alert('更新失敗: 未找到對應的用戶');
+        } else {
+          console.error('更新密碼時出錯:', error);
+          alert('更新密碼失敗，請稍後再試');
+        }
       }
+    },
+    handleLogout() {
+      logout(); // 清除用戶信息
+      window.location.href = '/'; // 導航到主畫面或登錄頁面
     }
-  },
+  }
 };
 </script>
 
+
 <style scoped>
+
 .update-password-form {
   max-width: 400px;
   margin: 0 auto;

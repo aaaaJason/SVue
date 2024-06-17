@@ -14,14 +14,14 @@
         <label for="confirmPassword">確認新密碼</label>
         <input type="password" id="confirmPassword" v-model="confirmPassword" required>
       </div>
-      <button type="submit" >確認</button>
+      <button type="submit">確認</button>
     </form>
   </div>
-  
 </template>
 
 <script>
 import axios from 'axios';
+import { logout } from '@/LoginUser';
 
 export default {
   data() {
@@ -32,18 +32,13 @@ export default {
       passwordsMatch: null,
     };
   },
-  computed: {
-    
-  },
   methods: {
-
     async handleSubmit() {
-      
       this.passwordsMatch = this.newPassword === this.confirmPassword;
       if (!this.passwordsMatch && this.confirmPassword) {
-      window.alert('兩次密碼輸入不同');
-      return
-    }
+        window.alert('兩次密碼輸入不同');
+        return;
+      }
       try {
         const response = await axios.put('https://192.168.1.150:443/updatestore', {
           MAccount: this.MAccount,
@@ -52,20 +47,24 @@ export default {
 
         if (response.data.success) {
           window.alert('密碼更新成功');
-          window.location.reload();
+          this.handleLogout();
         } else {
           window.alert(`更新失敗: ${response.data.message}`);
         }
       } catch (error) {
-        if(error.response.status === 500){
-          window.alert(`更新失敗: 未找到對應的商家`);
-        }else{
-        console.error('更新密碼時出錯:', error);
-        window.alert('更新密碼失敗，請稍後再試');
+        if (error.response && error.response.status === 500) {
+          window.alert('更新失敗: 未找到對應的商家');
+        } else {
+          console.error('更新密碼時出錯:', error);
+          window.alert('更新密碼失敗，請稍後再試');
         }
       }
-    }
-  }
+    },
+    handleLogout() {
+      logout(); // 清除用戶信息
+      window.location.href = '/'; // 導航到登錄頁面
+    },
+  },
 };
 </script>
 
@@ -92,6 +91,7 @@ input[type="number"] {
   border: 1px solid #ccc;
   border-radius: 4px;
 }
+
 .form-group {
   margin-bottom: 15px;
 }

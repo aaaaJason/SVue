@@ -41,7 +41,7 @@ export default {
 
         if (response.data.message === '使用者新增成功') {
           alert('使用者新增成功');
-          // 可以導航到成功頁面或者做其他處理
+          window.location.reload();
         } else {
           alert(response.data.message);
         }
