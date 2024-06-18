@@ -8,6 +8,7 @@ import insertstore from '../views/insertstore.vue';
 import updatestore from '../views/updatestore.vue';
 import insertuser from '../views/insertuser.vue';
 import updateuser from '../views/updateuser.vue';
+import storedata from '../views/storedata.vue';
 
 Vue.use(VueRouter)
 
@@ -52,6 +53,17 @@ const routes = [
     path: '/updateuser',
     name: 'updateuser',
     component: updateuser
+  },
+  {
+    path: '/storedata',
+    name: 'storedata',
+    component: storedata,
+    props: route => ({
+      MAccount: route.query.MAccount,
+      Mname: route.query.Mname,
+      Voucher:route.query.Voucher,
+      Sid: route.query.Sid
+    })
   }
 ]
 

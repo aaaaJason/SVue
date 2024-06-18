@@ -3,17 +3,18 @@
     <el-table :data="tableData" style="width: 100%">
       <el-table-column prop="Mname" label="商家名稱"></el-table-column>
       <el-table-column prop="MAccount" label="商家帳號"></el-table-column>
-      <el-table-column prop="Discount" label="折抵方式"></el-table-column>
+      <el-table-column prop="Discount" label="折抵方式" :formatter="formatDiscount"></el-table-column>
       <el-table-column prop="Voucher" label="折抵券張數"></el-table-column>
       <el-table-column label="操作">
         <template slot-scope="scope">
-          <el-button type="text" @click="handleEdit(scope.row)">編輯</el-button>
+          <el-button  type="success" @click="handleEdit(scope.row)">編輯</el-button>
+          <el-button type="primary" @click="handleViewMembers(scope.row)">查看商家會員</el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <!-- 編輯對話框 -->
-    <el-dialog title="编辑商家信息" :visible.sync="dialogVisible">
+    <!-- 編輯商家資訊對話框 -->
+    <el-dialog title="編輯商家資訊" :visible.sync="dialogVisible">
       <el-form ref="editForm" :model="editForm">
         <el-form-item label="商家名稱">
           <el-input v-model="editForm.Mname" :disabled="true"></el-input>
@@ -21,11 +22,25 @@
         <el-form-item label="商家帳號">
           <el-input v-model="editForm.MAccount" :disabled="true"></el-input>
         </el-form-item>
-        <el-form-item label="折抵方式">
-          <el-input v-model="editForm.Discount"></el-input>
+      <el-form-item label="折抵方式(小時)">
+        <el-input-number 
+          v-model.number="editForm.Discount" 
+          :min="1" 
+          :max="24"
+          :step="1"
+          @change="validateDiscount"
+        />
+        <br>
+        <span  style="color: blueviolet;">折抵方式必須在 1 到 24 之間</span>
         </el-form-item>
         <el-form-item label="折抵券張數">
-          <el-input v-model="editForm.Voucher"></el-input>
+          <el-input-number  v-model.number="editForm.Voucher"  
+          :step="1" 
+          :controls="true"
+          :precision="0" 
+          @change="validateVoucher"></el-input-number>
+          <br>
+          <span v-if="errorCount" style="color: red;">{{ errorCount }}</span>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -33,6 +48,8 @@
         <el-button type="primary" @click="saveEdit">保存</el-button>
       </div>
     </el-dialog>
+
+
   </div>
 </template>
 
@@ -49,10 +66,20 @@ export default {
         Discount: '',
         Voucher: '',
       },
+      errorCount:'',
+      originalVoucher: 0,
     };
   },
   created() {
     this.fetchTableData(); // 組件創建時調用 API
+  },
+  watch: {
+    'editForm.Discount': function(newValue) {
+      this.validateDiscount(newValue);
+    },
+    'editForm.Voucher': function(newValue) {
+      this.validateVoucher(newValue);
+    }
   },
   methods: {
     async fetchTableData() {
@@ -63,6 +90,7 @@ export default {
             'Content-Type': 'application/json',
           },
         });
+        
         if (response.ok) {
           this.tableData = await response.json();
         } else {
@@ -83,7 +111,7 @@ export default {
         if (response.data.success) {
           window.alert('更新成功');
           this.dialogVisible = false;
-          window.location.reload();
+          this.fetchTableData();
         } else {
           window.alert(`更新失敗: ${response.data.message}`);
         }
@@ -100,12 +128,50 @@ export default {
       // 打開編輯對話框，並將行數據填充到編輯表單中
       this.dialogVisible = true;
       this.editForm = { ...row }; // 使用對象展開運算符複製行數據到編輯表單中
+      this.originalVoucher = row.Voucher;
+    },
+    handleViewMembers(row) {
+      // 使用路由导航到 /storedata 并将商家数据作为参数传递
+      console.log('傳遞的 Sid:', row.SId);
+      this.$router.push({ 
+        name: 'storedata',
+        query: {
+          MAccount: row.MAccount,
+          Mname: row.Mname,
+          Voucher:row.Voucher,
+          Sid: row.SId 
+        }
+      });
     },
     saveEdit() {
-      // 保存編輯操作，可以在這裡處理保存邏輯，比如調用 API 更新數據
-      console.log('保存編輯', this.editForm);
-      this.saveAPI()
+      if (this.editForm.Discount < 1 || this.editForm.Discount > 24||this.editForm.Voucher < this.originalVoucher) {
+        window.alert('請確定資料輸入無誤');
+        return;
+      }
+        this.errorCount = '';
+        this.errorMessage = '';
+        console.log('保存編輯', this.editForm);
+        this.saveAPI()
+      
     },
+    validateDiscount(value) {
+      if (value < 1) {
+        this.editForm.Discount = 1;
+      } else if (value > 24) {
+        this.editForm.Discount = 24;
+      }
+    },
+    validateVoucher(value) {
+      if (value < this.originalVoucher) {
+        this.errorCount = '折抵券不可比原數量少。原張數：'+this.originalVoucher;
+      } else {
+        this.errorCount = '';
+      }
+    },
+    formatDiscount(row, column, cellValue) {
+      return cellValue === 24 ? '折抵整天' : `${cellValue} 小時`;
+    }
+    
   },
 };
 </script>
@@ -114,27 +180,5 @@ export default {
 .el-table {
   border: 2px solid #080808;
   background-color: #12597a;
-}
-
-/* 修改表頭的背景顏色和文字顏色 */
-.table-container .el-table thead {
-  background-color: #409EFF ;
-  color: #ffffff;
-}
-
-/* 修改表格行的樣式 */
-.el-table tr {
-  border-bottom: 6px solid #f00c0c;
-}
-
-/* 修改表格列的樣式 */
-.el-table td,
-.el-table th {
-  padding: 10px;
-}
-
-/* 滑過行時的樣式 */
-.el-table tr:hover {
-  background-color: #f0f0f0;
 }
 </style>

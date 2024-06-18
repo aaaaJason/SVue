@@ -16,18 +16,17 @@
         <span v-if="passwordsMatch === false" class="alert">確認密碼不一致</span>
       </div>
       <div class="form-group">
-        <label for="discount">折抵方式</label>
+        <label for="discount">折抵方式(小時)</label>
         <input type="number" id="discount" v-model.number="discount" required>
-        <span v-if="discount < 0" class="alert">折抵方式不能為負數</span>
-        <span v-if="discount > 23" class="alert">折抵方式必須為0~23之間</span>
-        <span v-if="discount >= 0 && discount <= 23" class="note">0: 當日全天，1~23: 小時折抵</span>
+        <span class="note">24: 當日全天，1~23: 小時折抵</span>
+       
       </div>
       <div class="form-group">
         <label for="voucher">折抵卷張數</label>
         <input type="number" id="voucher" v-model.number="voucher" required>
         <span v-if="voucher < 0" class="alert">折抵卷張數不能為負數</span>
       </div>
-      <button type="submit" :disabled=" (discount < 0 ||discount>23) || voucher < 0" >確認</button>
+      <button type="submit" :disabled=" (discount < 1 ||discount>24) || voucher < 0" >確認</button>
     </form>
    
   </div>
