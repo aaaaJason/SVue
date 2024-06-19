@@ -4,7 +4,11 @@
     <form @submit.prevent="handleSubmit">
       <div class="form-group">
         <label for="MAccount">商家帳號</label>
-        <input type="text" id="MAccount" v-model="MAccount" required>
+        <input  disabled="false" type="text" id="MAccount" v-model="MAccount" required>
+      </div>
+      <div class="form-group">
+        <label for="oldPassword">舊密碼</label>
+        <input type="password" id="oldPassword" v-model="oldPassword" required>
       </div>
       <div class="form-group">
         <label for="newPassword">新密碼</label>
@@ -21,16 +25,20 @@
 
 <script>
 import axios from 'axios';
-import { logout } from '@/LoginUser';
-
+import Cookies from 'js-cookie';
 export default {
   data() {
     return {
       MAccount: '',
+      oldPassword:'',
       newPassword: '',
       confirmPassword: '',
       passwordsMatch: null,
     };
+  },
+  created() {
+    // 在组件创建时获取 Cookie 中的用户名
+    this.getUsernameFromCookie();
   },
   methods: {
     async handleSubmit() {
@@ -42,28 +50,30 @@ export default {
       try {
         const response = await axios.put('https://192.168.1.150:443/updatestore', {
           MAccount: this.MAccount,
+          oldPassword:this.oldPassword,
           MPassword: this.newPassword,
         });
 
         if (response.data.success) {
           window.alert('密碼更新成功');
-          this.handleLogout();
+          window.location.href = '/'; // 導航到主畫面或登錄頁面
         } else {
           window.alert(`更新失敗: ${response.data.message}`);
         }
       } catch (error) {
-        if (error.response && error.response.status === 500) {
-          window.alert('更新失敗: 未找到對應的商家');
-        } else {
-          console.error('更新密碼時出錯:', error);
-          window.alert('更新密碼失敗，請稍後再試');
-        }
+          console.error(`更新失敗: ${error.response.data.message}`);
+          window.alert(`更新失敗: ${error.response.data.message}`);
       }
     },
-    handleLogout() {
-      logout(); // 清除用戶信息
-      window.location.href = '/'; // 導航到登錄頁面
-    },
+    getUsernameFromCookie() {
+      // 使用 js-cookie 库从 Cookie 中获取存储的用户名
+      const login = Cookies.get('login');
+      if (login) {
+        // 如果 Cookie 中存在用户名，将其赋值给组件的数据属性
+        const parsedLogin = JSON.parse(login);//解析JSON
+        this.MAccount = parsedLogin.username;
+      }
+    }
   },
 };
 </script>

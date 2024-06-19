@@ -44,7 +44,7 @@ export default {
   methods: {
     async login() {
       try {
-        const response = await fetch('https://192.168.1.150:443/userslogin', {
+        const response = await fetch('https://192.168.1.150:443/storelogin', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -66,11 +66,11 @@ export default {
             window.location.reload();
           }
         } else {
-          this.error = data.error || '登录失败，用户名或密码错误';
+          this.error = data.error || '登入失敗，帳號或密碼錯誤';
         }
       } catch (error) {
         console.error('Error:', error);
-        this.error = '无法连接到服务器，请稍后再试';
+        this.error = '伺服器連線錯誤，請稍後再試';
       }
     }
   }
@@ -97,7 +97,7 @@ export default {
    }
    
    .login-button {
-     background-color: #4ae252;
+     background-color: #7c49f5;
      border: none;
      color: white;
      padding: 10px 20px;
@@ -112,7 +112,7 @@ export default {
    }
    
    .login-button:hover {
-     background-color:#0b5c0b ;
+     background-color:#981beb ;
    }
    
    /* 自定義輸入框樣式 */

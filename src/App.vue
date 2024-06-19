@@ -1,10 +1,10 @@
 <template>
   <v-app>
-  <v-app-bar app color="green" dark>
+  <v-app-bar app color="indigo" dark>
     <v-btn v-if="$route.path !== '/'" icon @click="toggleDrawer">
        <v-icon>mdi-menu</v-icon>
     </v-btn>
-    <v-toolbar-title>停車場帳號管理系統</v-toolbar-title>
+    <v-toolbar-title>商家管理系統</v-toolbar-title>
     <v-spacer></v-spacer>
     <span v-if="$route.path !== '/'" class="username">使用者：{{ username }}</span>
   </v-app-bar>
@@ -29,34 +29,13 @@
         </v-list-item-content>
       </v-list-item>
       
-      <!-- 使用者新增链接 -->
-      <v-list-item v-on:click="goTo('/insertuser')">
-        <v-list-item-icon>
-          <v-icon>mdi-account-plus</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>使用者新增</v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-      
-      <!-- 使用者变更密码链接 -->
-      <v-list-item v-on:click="goTo('/updateuser')">
+      <!-- 商家頁面 -->
+      <v-list-item v-on:click="goTo('/updatestore')">
         <v-list-item-icon>
           <v-icon>mdi-lock-reset</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
-          <v-list-item-title>更新使用者密碼</v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
-
-      <v-divider></v-divider>
-      <!-- 商家頁面 -->
-      <v-list-item v-on:click="goTo('/storeedit')">
-        <v-list-item-icon>
-          <v-icon>mdi-storefront-outline</v-icon>
-        </v-list-item-icon>
-        <v-list-item-content>
-          <v-list-item-title>商家管理</v-list-item-title>
+          <v-list-item-title>更改密碼</v-list-item-title>
         </v-list-item-content>
       </v-list-item>
 
