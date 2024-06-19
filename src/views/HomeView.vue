@@ -1,17 +1,29 @@
 <template>
   <div>
     <el-table :data="tableData" style="width: 100%">
-      <el-table-column prop="Mname" label="商家名稱"></el-table-column>
-      <el-table-column prop="MAccount" label="商家帳號"></el-table-column>
-      <el-table-column prop="Discount" label="折抵方式" :formatter="formatDiscount"></el-table-column>
-      <el-table-column prop="Voucher" label="折抵券張數"></el-table-column>
-      <el-table-column label="操作">
-        <template slot-scope="scope">
-          <el-button  type="success" @click="handleEdit(scope.row)">編輯</el-button>
-          <el-button type="primary" @click="handleViewMembers(scope.row)">查看商家會員</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <el-table-column prop="Mname" label="商家名稱">
+      <template slot-scope="scope">
+        <span class="table-cell">{{ scope.row.Mname }}</span>
+      </template>
+    </el-table-column>
+    <el-table-column prop="MAccount" label="商家帳號">
+      <template slot-scope="scope">
+        <span class="table-cell">{{ scope.row.MAccount }}</span>
+      </template>
+    </el-table-column>
+    <el-table-column prop="Discount" label="折抵方式" :formatter="formatDiscount"></el-table-column>
+    <el-table-column prop="Voucher" label="折抵券張數">
+      <template slot-scope="scope">
+        <span class="table-cell-V">{{ scope.row.Voucher }}</span>
+      </template>
+    </el-table-column>
+    <el-table-column label="操作">
+      <template slot-scope="scope">
+        <el-button type="success" @click="handleEdit(scope.row)">編輯</el-button>
+        <el-button type="primary" @click="handleViewMembers(scope.row)">查看商家會員</el-button>
+      </template>
+    </el-table-column>
+  </el-table>
 
     <!-- 編輯商家資訊對話框 -->
     <el-dialog title="編輯商家資訊" :visible.sync="dialogVisible">
@@ -180,5 +192,14 @@ export default {
 .el-table {
   border: 2px solid #080808;
   background-color: #edf1f3;
+}
+.table-cell {
+  font-size: 20px;
+  font-weight: bold; 
+}
+.table-cell-V{
+  font-size: 20px;
+  font-weight: bold; /* 设置文字大小 */
+  color: rgb(53, 167, 30)
 }
 </style>
