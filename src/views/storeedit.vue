@@ -1,12 +1,12 @@
 <template>
     <div class="button-container">
       <CustomButton class="store-button"  @click="updatestore">
-        <v-icon color="error" :size="60">mdi mdi-lock-check</v-icon>
+        <v-icon color="error" :size="50">mdi mdi-lock-check</v-icon>
         商家變更密碼
       </CustomButton>
       <br>
       <CustomButton class="store-button" @click="insertstore">
-        <v-icon color="error" :size="60">mdi mdi-account-multiple-plus</v-icon>
+        <v-icon color="error" :size="50">mdi mdi-account-multiple-plus</v-icon>
         商家新增帳號
       </CustomButton>
     </div>

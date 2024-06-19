@@ -179,6 +179,6 @@ export default {
 <style scoped>
 .el-table {
   border: 2px solid #080808;
-  background-color: #12597a;
+  background-color: #edf1f3;
 }
 </style>

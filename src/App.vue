@@ -6,10 +6,7 @@
     </v-btn>
     <v-toolbar-title>停車場帳號管理系統</v-toolbar-title>
     <v-spacer></v-spacer>
-    <div v-if="isAuthenticated">
-    <span class="username">使用者：{{ username }}</span>
-    <v-btn @click="handleLogout" class="logout-button">登出</v-btn>
-    </div>
+    <span v-if="$route.path !== '/'" class="username">使用者：{{ username }}</span>
   </v-app-bar>
   <v-navigation-drawer v-if="$route.path !== '/'" app v-model="drawer" temporary>
       <!-- 添加關閉按鈕 -->
@@ -63,6 +60,16 @@
         </v-list-item-content>
       </v-list-item>
 
+      <v-divider></v-divider>
+      <!-- 登出 -->
+      <v-list-item v-on:click="goTo('/')">
+        <v-list-item-icon>
+        <v-icon>mdi-logout</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+         <v-list-item-title>登出</v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
     </v-list>
     </v-navigation-drawer>
 
@@ -82,10 +89,19 @@
 
 
 <script>
-import { isAuthenticated, getUsername, logout } from '@/LoginUser';
-import { computed,ref } from 'vue';
+import Cookies from 'js-cookie';
+import { ref } from 'vue';
 export default {
+  data() {
+    return {
+      username: '' ,
+    };
+  },
   name: 'App',
+  created() {
+    // 在组件创建时获取 Cookie 中的用户名
+    this.getUsernameFromCookie();
+  },
   methods: {
     goTo(route) {
       if (this.$route.path !== route) {
@@ -93,32 +109,29 @@ export default {
       } else {
         console.log('已在當前路徑，無須前往');
       }
+    },
+    getUsernameFromCookie() {
+      // 使用 js-cookie 库从 Cookie 中获取存储的用户名
+      const login = Cookies.get('login');
+      if (login) {
+        // 如果 Cookie 中存在用户名，将其赋值给组件的数据属性
+        const parsedLogin = JSON.parse(login);//解析JSON
+        this.username = parsedLogin.username;
+      }
     }
-  },
-  setup() {
+  },setup() {
     const drawer = ref(false);
-    const username = computed(() => getUsername.value);
 
     const toggleDrawer = () => {
       drawer.value = !drawer.value;
     };
 
-    const handleLogout = () => {
-      logout();
-      window.location.href = '/';
-    };
-
     return {
       drawer,
-      isAuthenticated,
-      username,
-      handleLogout,
       toggleDrawer,
     };
   },
-  data: () => ({
-    //
-  }),
+  
 };
 </script>
 <style scoped>

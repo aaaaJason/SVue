@@ -1,79 +1,82 @@
 <template>
-    <div class="container">
-      <table class="login-table">
-        <tr>
-          <td align="center">
-            <h2>系統登入</h2>
-            <form @submit.prevent="login">
-              <div class="input-container">
-                <label for="username">帳號：</label>
-                <input type="text" id="username" v-model="username" class="custom-input">
-              </div>
-              <div class="input-container">
-                <label for="password">密碼：</label>
-                <input type="password" id="password" v-model="password" class="custom-input">
-              </div>
-              <div class="button-container">
-                <button type="submit" class="login-button">登入</button>
-              </div>
-            </form>
-            <p v-if="error" style="color: red;">{{ error }}</p>
-          </td>
-        </tr>
-      </table>
-    </div>
-  </template>
+  <div class="container">
+    <table class="login-table">
+      <tr>
+        <td align="center">
+          <h2>系統登入</h2>
+          <form @submit.prevent="login">
+            <div class="input-container">
+              <label for="username">帳號：</label>
+              <input type="text" id="username" v-model="loginForm.username" class="custom-input">
+            </div>
+            <div class="input-container">
+              <label for="password">密碼：</label>
+              <input type="password" id="password" v-model="password" class="custom-input">
+            </div>
+            <div class="button-container">
+              <button type="submit" class="login-button">登入</button>
+            </div>
+          </form>
+          <p v-if="error" style="color: red;">{{ error }}</p>
+        </td>
+      </tr>
+    </table>
+  </div>
+</template>
   
 
   
 
   <script>
-  import { setUser } from '@/LoginUser';
-  export default {
-    data() {
-      return {
-        username: '',
-        password: '',
-        error: ''
-      };
-    },
-    methods: {
-      async login() {
-  try {
-    const response = await fetch('https://192.168.1.150:443/userslogin', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        username: this.username,
-        password: this.password
-      })
-    });
+import Cookies from 'js-cookie';
 
-    const data = await response.json();
-    if (response.ok) {
-      // 根據後端回傳的資料來判斷登入成功或失敗
-      if (response.ok && data.success) {
-        setUser(data.user); // 使用 Composition API 設置用戶信息
-        // 登錄成功，跳轉到首頁或其他頁面
-        this.$router.push('/main');
-      } else {
-        // 登錄失敗，顯示錯誤信息
-        this.error = data.error || '未知錯誤';
+export default {
+  data() {
+    return {
+      loginForm: {
+        username: '',
+        token: '' // 初始化 token
+      },
+      password: '',
+      error: ''
+    };
+  },
+  methods: {
+    async login() {
+      try {
+        const response = await fetch('https://192.168.1.150:443/userslogin', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            username: this.loginForm.username, // 使用 loginForm 中的 username
+            password: this.password  // 使用 loginForm 中的 password
+          })
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+          const token = data.token; // 确保 token 来自响应数据
+          this.loginForm.token = token; // 使用 token 初始化 loginForm 的 token
+          console.log(this.loginForm);
+          Cookies.set('login', JSON.stringify(this.loginForm), { expires: 1 });
+          if (Cookies.get('login') && this.loginForm.token) {
+            this.$router.push('/main');
+            window.location.reload();
+          }
+        } else {
+          this.error = data.error || '登录失败，用户名或密码错误';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        this.error = '无法连接到服务器，请稍后再试';
       }
-    } else {
-      // 當 response.ok 為 false 時，處理其他錯誤情況
-      this.error = data.error || '未知錯誤';
     }
-  } catch (error) {
-    console.error('Error:', error);
-    this.error = '伺服器錯誤';
   }
-}
-    }
-  };
-  </script>
+};
+</script>
+
    <style scoped>
    .container {
      display: flex;
