@@ -44,7 +44,7 @@ export default {
   methods: {
     async login() {
       try {
-        const response = await fetch('https://192.168.1.150:443/storelogin', {
+        const response = await fetch('http://192.168.1.150:443/storelogin', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
