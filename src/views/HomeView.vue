@@ -1,205 +1,154 @@
-<template>
-  <div>
-    <el-table :data="tableData" style="width: 100%">
-    <el-table-column prop="Mname" label="商家名稱">
-      <template slot-scope="scope">
-        <span class="table-cell">{{ scope.row.Mname }}</span>
-      </template>
-    </el-table-column>
-    <el-table-column prop="MAccount" label="商家帳號">
-      <template slot-scope="scope">
-        <span class="table-cell">{{ scope.row.MAccount }}</span>
-      </template>
-    </el-table-column>
-    <el-table-column prop="Discount" label="折抵方式" :formatter="formatDiscount"></el-table-column>
-    <el-table-column prop="Voucher" label="折抵券張數">
-      <template slot-scope="scope">
-        <span class="table-cell-V">{{ scope.row.Voucher }}</span>
-      </template>
-    </el-table-column>
-    <el-table-column label="操作">
-      <template slot-scope="scope">
-        <el-button type="success" @click="handleEdit(scope.row)">編輯</el-button>
-        <el-button type="primary" @click="handleViewMembers(scope.row)">查看商家會員</el-button>
-      </template>
-    </el-table-column>
-  </el-table>
 
-    <!-- 編輯商家資訊對話框 -->
-    <el-dialog title="編輯商家資訊" :visible.sync="dialogVisible">
+<template>
+    <div>
+      <h1 style="text-align: center;">單位 - {{ Mname }}</h1>
+      <span>商家帳號：{{ MAccount }}</span>
+      <p>剩餘抵用券：<span class="voucher" style="color: red; font-size: larger;">{{ Voucher }}</span> 張</p>
+
+      <el-table v-if="members.length > 0" :data="members" class="custom-table">
+        <el-table-column prop="MemberName" label="會員名稱"></el-table-column>
+        <el-table-column prop="MemberAcc" label="會員帳號"></el-table-column>
+        <el-table-column label="折抵券張數">
+          <template slot-scope="scope">
+            <!-- 显示 VCount 的值 -->
+            {{ scope.row.VCount }} 張
+            <!-- 在 VCount 旁边添加一个按钮 -->
+            <el-button type="success" size="small" @click="handleEdit(scope.row)">+</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+        <div v-else style="text-align: center; color: red;">
+        <h1>無會員資料</h1>
+        </div>
+
+         <!-- 編輯商家資訊對話框 -->
+         <el-dialog title="新增折抵券" :visible.sync="dialogVisible">
       <el-form ref="editForm" :model="editForm">
-        <el-form-item label="商家名稱">
-          <el-input v-model="editForm.Mname" :disabled="true"></el-input>
-        </el-form-item>
-        <el-form-item label="商家帳號">
-          <el-input v-model="editForm.MAccount" :disabled="true"></el-input>
-        </el-form-item>
-      <el-form-item label="折抵方式(小時)">
-        <el-input-number 
-          v-model.number="editForm.Discount" 
-          :min="1" 
-          :max="24"
-          :step="1"
-          @change="validateDiscount"
-        />
-        <br>
-        <span  style="color: blueviolet;">折抵方式必須在 1 到 24 之間</span>
-        </el-form-item>
-        <el-form-item label="折抵券張數">
-          <el-input-number  v-model.number="editForm.Voucher"  
-          :step="1" 
-          :controls="true"
-          :precision="0" 
-          @change="validateVoucher"></el-input-number>
+        <el-form-item label="將張數新增為">
+          <el-input-number
+            v-model.number="editForm.VCount"
+            :min="editForm.VCount"
+            :max="this.Voucher+this.editForm.originalVCount"
+            :step="1"
+            :controls="true"
+            :precision="0"
+            @change="validateVCount">
+          </el-input-number>
           <br>
           <span v-if="errorCount" style="color: red;">{{ errorCount }}</span>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveEdit">保存</el-button>
+        <!-- <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveEdit">保存</el-button> -->
       </div>
     </el-dialog>
+         
 
-
-  </div>
-</template>
-
-<script>
-import axios from 'axios';
-export default {
-  data() {
-    return {
-      tableData: [], // 用於存儲 API 返回的數據
-      dialogVisible: false,
-      editForm: {
-        Mname: '',
-        MAccount: '',
-        Discount: '',
-        Voucher: '',
-      },
-      errorCount:'',
-      originalVoucher: 0,
-    };
-  },
-  created() {
-    this.fetchTableData(); // 組件創建時調用 API
+    </div>
+  </template>
+  
+  <script>
+  import Cookies from 'js-cookie';
+  import axios from 'axios';
+  export default {
+    
+    data() {
+      return {
+        Mname:'',
+        MAccount:'',
+        Voucher:'',
+        username:'',
+        Sid:'',
+        errorCount:'',
+        members: [],
+        dialogVisible: false,
+        editForm: {
+          VCount: '',
+        },
+        one:1,
+      };
+    },
+    created() {
+    // 在组件创建时获取 Cookie 中的用户名
+    this.getUser();
+    this.fetchStoreData();
   },
   watch: {
-    'editForm.Discount': function(newValue) {
-      this.validateDiscount(newValue);
-    },
-    'editForm.Voucher': function(newValue) {
-      this.validateVoucher(newValue);
+    'editForm.Vcount': function(newValue) {
+      this.validateVCount(newValue);
     }
   },
   methods: {
-    async fetchTableData() {
-      try {
-        const response = await fetch('http://192.168.1.150:443/maindata', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (response.ok) {
-          this.tableData = await response.json();
-        } else {
-          console.error('API 請求失敗', response.statusText);
-        }
-      } catch (error) {
-        console.error('請求錯誤', error);
+    getUser() {
+      const login = Cookies.get('login');
+      if (login) {
+        const parsedLogin = JSON.parse(login);
+        this.username = parsedLogin.username;
       }
     },
-    async saveAPI() {
+    async fetchStoreData() { // 將 getAPI 改名為 fetchStoreData
       try {
-        const response = await axios.put('http://192.168.1.150:443/updatestore', {
-          MAccount: this.editForm.MAccount,
-          Discount: this.editForm.Discount,
-          Voucher: this.editForm.Voucher
+        const response = await axios.post('https://192.168.1.150:443/Storemaindata', {
+          MAccount: this.username
+        }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
         });
 
-        if (response.data.success) {
-          window.alert('更新成功');
-          this.dialogVisible = false;
-          this.fetchTableData();
+        if (response.status === 200) {
+          const data = response.data; 
+          this.Sid=data.SId,
+          this.Mname = data.Mname;
+          this.MAccount = data.MAccount;
+          this.Voucher = data.Voucher;
+          this.fetchMembers();
         } else {
-          window.alert(`更新失敗: ${response.data.message}`);
+          console.error('數據獲取失敗:', response.status);
         }
       } catch (error) {
-        if (error.response && error.response.status === 500) {
-          window.alert('更新失敗: 未找到對應的商家');
-        } else {
-          console.error('更新出錯:', error);
-          window.alert('更新失敗 請稍後再試');
-        }
+        console.error('伺服器有誤:', error);
       }
     },
-    handleEdit(row) {
+    async fetchMembers() {
+          try {
+              console.log(this.Sid);
+              const response = await axios.post('https://192.168.1.150:443/storedata', {
+                  SId: this.Sid
+          });
+        
+            if (response.status === 200) {
+              this.members = response.data;
+          } 
+      } catch (error) {
+          if(error.response.status === 404){
+              console.log("查無資料");
+          }else{
+              console.error('請求失敗:', error);
+          }
+      }
+      },
+      handleEdit(row) {
       // 打開編輯對話框，並將行數據填充到編輯表單中
       this.dialogVisible = true;
-      this.editForm = { ...row }; // 使用對象展開運算符複製行數據到編輯表單中
-      this.originalVoucher = row.Voucher;
+       this.editForm = {  ...row};
+      this.editForm.originalVCount = row.VCount; // 保存原始 VCount 值
     },
-    handleViewMembers(row) {
-      // 使用路由导航到 /storedata 并将商家数据作为参数传递
-      console.log('傳遞的 Sid:', row.SId);
-      this.$router.push({ 
-        name: 'storedata',
-        query: {
-          MAccount: row.MAccount,
-          Mname: row.Mname,
-          Voucher:row.Voucher,
-          Sid: row.SId 
+      validateVCount(value) {
+        const newValue =this.Voucher+this.editForm.originalVCount
+        if (value == newValue) {
+          this.errorCount = '已達最大數量';
+        } else {
+          this.errorCount = '';
         }
-      });
-    },
-    saveEdit() {
-      if (this.editForm.Discount < 1 || this.editForm.Discount > 24||this.editForm.Voucher < this.originalVoucher) {
-        window.alert('請確定資料輸入無誤');
-        return;
-      }
-        this.errorCount = '';
-        this.errorMessage = '';
-        console.log('保存編輯', this.editForm);
-        this.saveAPI()
-      
-    },
-    validateDiscount(value) {
-      if (value < 1) {
-        this.editForm.Discount = 1;
-      } else if (value > 24) {
-        this.editForm.Discount = 24;
-      }
-    },
-    validateVoucher(value) {
-      if (value < this.originalVoucher) {
-        this.errorCount = '折抵券不可比原數量少。原張數：'+this.originalVoucher;
-      } else {
-        this.errorCount = '';
-      }
-    },
-    formatDiscount(row, column, cellValue) {
-      return cellValue === 24 ? '折抵整天' : `${cellValue} 小時`;
+      },
     }
-    
-  },
-};
-</script>
-
-<style scoped>
-.el-table {
-  border: 2px solid #080808;
-  background-color: #edf1f3;
-}
-.table-cell {
-  font-size: 20px;
-  font-weight: bold; 
-}
-.table-cell-V{
-  font-size: 20px;
-  font-weight: bold; /* 设置文字大小 */
-  color: rgb(53, 167, 30)
-}
-</style>
+ };
+  </script>
+  <style>
+    .voucher {
+    font-size: 25pt; 
+    color: red; 
+    }
+  </style>

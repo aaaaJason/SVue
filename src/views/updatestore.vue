@@ -48,7 +48,7 @@ export default {
         return;
       }
       try {
-        const response = await axios.put('http://192.168.1.150:443/updatestore', {
+        const response = await axios.put('https://192.168.1.150:443/updatestore', {
           MAccount: this.MAccount,
           oldPassword:this.oldPassword,
           MPassword: this.newPassword,
