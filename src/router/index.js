@@ -4,7 +4,7 @@ import Cookies from 'js-cookie'
 import HomeView from '../views/HomeView.vue'
 import Login from '../views/Login.vue';
 import updatestore from '../views/updatestore.vue';
-import storedata from '../views/storedata.vue';
+import detailed from '../views/detailed.vue';
 import insertuser from '../views/insertuser.vue';
 
 
@@ -38,13 +38,13 @@ const routes = [
     meta: { requireAuth: true }
   },
   {
-    path: '/storedata',
-    name: 'storedata',
-    component: storedata,
+    path: '/detailed',
+    name: 'detailed',
+    component: detailed,
     props: route => ({
-      MAccount: route.query.MAccount,
-      Mname: route.query.Mname,
-      Voucher:route.query.Voucher,
+      MemberAcc: route.query.MemberAcc,
+      MemberName:route.query.MemberName,
+      VCount:route.query.VCount,
       Sid: route.query.Sid
     }),
     meta: { requireAuth: true }

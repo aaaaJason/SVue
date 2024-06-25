@@ -23,7 +23,7 @@
         <el-table-column label="操作">
       <template slot-scope="scope">
         <el-button type="success" @click="handle(scope.row)">編輯</el-button>
-        <el-button type="warning" @click="handleEdit(scope.row)">查看</el-button>
+        <el-button type="warning" @click="detailed(scope.row)">查看詳細</el-button>
       </template>
     </el-table-column>
       </el-table>
@@ -164,7 +164,8 @@
           try {
               console.log(this.Sid);
               const response = await axios.post('https://192.168.1.150:443/storedata', {
-                  SId: this.Sid
+                  SId: this.Sid,
+                  table:'MerMembers'
           });
         
             if (response.status === 200) {
@@ -191,6 +192,17 @@
       this.errorCount = '';
       this.Count=row.VCount+1
       
+    },
+    detailed(row) {
+      this.$router.push({ 
+        name: 'detailed',
+        query: {
+          MemberAcc: row.MemberAcc,
+          MemberName:row.MemberName,
+          VCount:row.VCount,
+          Sid: row.SId 
+        }
+      });
     },
       validateVCount(value) {
         this.Count=value+this.editForm.VCount
