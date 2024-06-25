@@ -5,6 +5,8 @@ import HomeView from '../views/HomeView.vue'
 import Login from '../views/Login.vue';
 import updatestore from '../views/updatestore.vue';
 import storedata from '../views/storedata.vue';
+import insertuser from '../views/insertuser.vue';
+
 
 
 
@@ -27,6 +29,12 @@ const routes = [
     path: '/updatestore',
     name: 'updatestore',
     component: updatestore,
+    meta: { requireAuth: true }
+  },
+  {
+    path: '/insertuser',
+    name: 'insertuser',
+    component: insertuser,
     meta: { requireAuth: true }
   },
   {

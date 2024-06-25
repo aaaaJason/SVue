@@ -28,14 +28,24 @@
           <v-list-item-title>主畫面</v-list-item-title>
         </v-list-item-content>
       </v-list-item>
-      
+
+      <!-- 新增會員 -->
+      <v-list-item v-on:click="goTo('/insertuser')">
+        <v-list-item-icon>
+          <v-icon>mdi-account-plus</v-icon>
+        </v-list-item-icon>
+        <v-list-item-content>
+          <v-list-item-title>新增會員</v-list-item-title>
+        </v-list-item-content>
+      </v-list-item>
+
       <!-- 商家頁面 -->
       <v-list-item v-on:click="goTo('/updatestore')">
         <v-list-item-icon>
           <v-icon>mdi-lock-reset</v-icon>
         </v-list-item-icon>
         <v-list-item-content>
-          <v-list-item-title>更改密碼</v-list-item-title>
+          <v-list-item-title>更改商家密碼</v-list-item-title>
         </v-list-item-content>
       </v-list-item>
 
