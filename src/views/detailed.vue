@@ -2,31 +2,71 @@
   <div>
     <h1 style="text-align: center;">會員 - {{ MemberName }}</h1>
     <span>會員帳號：{{ MemberAcc }}</span>
-    <p>剩餘抵用券：<span class="voucher" style="color: red; font-size: larger;">{{ VCount }}</span> 張</p>
+    <p>剩餘抵用券：<span class="VCount" style="color: red; font-size: larger;">{{ Voucher }}</span> 張</p>
+    <el-button type="danger" @click="showCarNumberForm">新增車號</el-button>
 
     <el-table v-if="MemVUsage.length > 0" :data="MemVUsage"  class="custom-table">
-      <el-table-column prop="VoucherCode" label="折抵車號"></el-table-column>
-      <el-table-column prop="VoucherDate" label="折抵日期"></el-table-column>
-      <el-table-column prop="UsageStartTime" label="折抵起時間">
+      <el-table-column prop="VoucherCode" label="車號"></el-table-column>
+      <el-table-column label="折抵券張數">
         <template slot-scope="scope">
-          {{ formatTime(scope.row.UsageStartTime) }}
+          <div class="text-button-container">
+            <!-- 显示 VCount 的值 -->
+            {{ scope.row.VCount }} 張
+            <el-button type="success" size="small" @click="handleEdit(scope.row)">+</el-button>
+          </div>
         </template>
       </el-table-column>
-      <el-table-column prop="UsageEndTime" label="折抵迄時間">
-        <template slot-scope="scope">
-          {{ formatTime(scope.row.UsageEndTime) }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="UsageTime" label="使用時間">
-        <template slot-scope="scope">
-          {{ formatDateTime(scope.row.UsageTime) }}
-        </template>
-      </el-table-column>
-    </el-table>     
+      <el-table-column label="操作">
+          <template slot-scope="scope">
+            <el-button type="primary" @click="handle(scope.row)">查看預約</el-button>
+            <el-button type="warning" @click="detailed(scope.row)">新增預約</el-button>
+          </template>
+        </el-table-column>
+  </el-table>     
+  <div v-else style="text-align: center; color: red;">
+    <h1>無車號資料</h1>
+  </div>
+   <!--車號的表單 -->
+   <el-dialog title="新增車號" :visible.sync="CarView">
+      <el-form ref="carNumberForm" :model="carNumberForm">
+        <el-form-item label="車牌號碼">
+          <el-input v-model="carNumberForm.carNumber" placeholder="請輸入車牌號碼"></el-input>
+          <span  style="color: red; font-size: larger;">備註：輸入車號不必輸入"-"符號</span> 
+          <p><span  style="color: red; font-size: larger;">例：ABC1234，DF1234，5678EG</span></p>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="CarView = false">取消</el-button>
+        <el-button type="primary" @click="saveCarNumber">保存</el-button>
+      </div>
+    </el-dialog>
+    <!-- 新增折抵券 -->
+    <el-dialog title="新增折抵券" :visible.sync="dialogVisible">
+          <el-form ref="editForm" :model="editForm">
+          <el-form-item label="新增張數：">
+          <el-input-number
+            v-model.number="one"
+            :min="1"
+            :max="Voucher"
+            :step="1"
+            :controls="true"
+            :precision="0"
+            @change="validateVCount">
+          </el-input-number>
+          <br>
+          <span v-if="errorCount" style="color: red;">{{ errorCount }}</span>
+          <br>
+          <p>新增後為<span v-if="Count" style="color: red; font-size: larger" >{{ Count }}</span>張</p>
+          </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="saveEdit">保存</el-button>
+          </div>
+    </el-dialog>
+    
 
-    <div v-else style="text-align: center; color: red;">
-      <h1>無會員資料</h1>
-    </div>
+    
   </div>
 </template>
 
@@ -47,21 +87,83 @@ export default {
       type: Number,
       required: true
     },
-    VCount: { 
-      type: Number,
-      required: true
-    },
   },
   data() {
     return {
-      MemVUsage: []
+      one:0,
+      CarView: false,
+      dialogVisible: false,
+      errorCount:'',
+      Count:'',
+      Voucher:'',
+      MemVUsage: [],
+      editForm: {
+          VCount: 0,
+          VoucherCode:''
+        },
+        carNumberForm: {
+        carNumber: ''
+      }
     };
   },
+  watch: {
+    'editForm.Vcount': function(newValue) {
+      this.validateVCount(newValue);
+    }
+  },
   created() {
-    this.fetchMembers();
+    this.fetchUserData();
     console.log(this.MemberName);
   },
+  
   methods: {
+    async saveCarNumber() {
+      if(!this.carNumberForm.carNumber){
+        alert("車牌號碼不可為空")
+        return
+      }
+      if(this.carNumberForm.carNumber.includes('-')){
+        alert("請確認車牌格式")
+        return
+      }
+        try {
+          const response = await axios.post('https://192.168.1.150:443/insertSuser', {
+            table:'MemVUsage',
+            MerSid:this.Sid,
+            VoucherCode: this.carNumberForm.carNumber
+          });
+          if (response.data.message === '使用者新增成功') {
+            alert('使用者新增成功');
+            this.CarView = false;
+            this.fetchUserData();
+          } else {
+            alert(response.data.message);
+          }
+        } catch (error) {
+          console.error('新增使用者時發生錯誤:', error);
+          alert('新增使用者失敗，請稍後再試');
+        }
+    },
+    async fetchUserData() { 
+      try {
+        const response = await axios.post('https://192.168.1.150:443/storedata', {
+          table:'MerMembers',
+          MSId: this.Sid
+        }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+        });
+        if (response.status === 200) {
+          this.Voucher = response.data[0].VCount;
+          this.fetchMembers();
+        } else {
+          console.error('數據獲取失敗:', response.status);
+        }
+      } catch (error) {
+        console.error('伺服器有誤:', error);
+      }
+    },
     async fetchMembers() {
       try {
         console.log(this.Sid);
@@ -95,7 +197,55 @@ export default {
       const minutes = datetime.substring(14, 16);
       const seconds = datetime.substring(17, 19);
       return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    }
+    },
+    handleEdit(row) {
+      if(this.Voucher==0){
+        window.alert('已無抵用券可以使用');
+        return
+      }
+      this.dialogVisible = true;
+      this.editForm = {  ...row};
+      this.one = 1;
+      this.errorCount = '';
+      this.Count=row.VCount+1
+    },
+    validateVCount(value) {
+        this.Count=value+this.editForm.VCount
+        if (value == this.Voucher) {
+          this.errorCount = '已達最大折抵數量';
+        } else {
+          this.errorCount = '';
+        }
+      },
+      async saveEdit() {
+        if (!this.one) {
+          window.alert('請確認資料輸入無誤');
+          return;
+        }
+        this.NewVoucher=this.Voucher-this.one
+        try {
+          const response = await axios.put('https://192.168.1.150:443/voucher', {
+            table:'MemVUsage',
+            VoucherCode: this.editForm.VoucherCode,
+            NewVCount:this.Count,
+            NewVoucher:this.NewVoucher,
+            MemberAcc: this.MemberAcc
+          });
+          if (response.status==200) {
+            window.alert('更新成功');
+            this.dialogVisible = false;
+            this.fetchUserData();
+          } else {
+            window.alert(`更新失敗: ${response.data.message}`);
+          }
+        } catch (error) {
+            window.alert(`更新失敗: ${error.response.data.message}`);
+
+        }
+      },
+      showCarNumberForm() {
+      this.CarView = true; // 打開彈出框
+    },
   }
 };
 </script>

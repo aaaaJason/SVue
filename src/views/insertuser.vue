@@ -93,6 +93,7 @@ export default {
       }
         try {
           const response = await axios.post('https://192.168.1.150:443/insertSuser', {
+            table:'MerMembers',
             MerSNumber:this.Sid,
             MemberAcc: this.MemberAcc,
             MemberName: this.MemberName,

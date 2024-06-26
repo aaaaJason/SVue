@@ -22,7 +22,7 @@
         <el-table-column prop="Remark" label="備註"></el-table-column>
         <el-table-column label="操作">
       <template slot-scope="scope">
-        <el-button type="success" @click="handle(scope.row)">編輯</el-button>
+        <el-button type="primary" @click="handle(scope.row)">編輯</el-button>
         <el-button type="warning" @click="detailed(scope.row)">查看詳細</el-button>
       </template>
     </el-table-column>
@@ -47,7 +47,7 @@
           <br>
           <span v-if="errorCount" style="color: red;">{{ errorCount }}</span>
           <br>
-          <span v-if="Count" style="color: red;">新增後為{{ Count }}張</span>
+          <p>新增後為<span v-if="Count" style="color: red; font-size: larger" >{{ Count }}</span>張</p>
           </el-form-item>
           </el-form>
           <div slot="footer" class="dialog-footer">
@@ -191,7 +191,6 @@
       this.one = 1;
       this.errorCount = '';
       this.Count=row.VCount+1
-      
     },
     detailed(row) {
       this.$router.push({ 
