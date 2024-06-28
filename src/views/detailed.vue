@@ -4,9 +4,8 @@
     <span>會員帳號：{{ MemberAcc }}</span>
     <p>剩餘抵用券：<span class="VCount" style="color: red; font-size: larger;">{{ Voucher }}</span> 張</p>
     <el-button type="danger" @click="showCarNumberForm">新增車號</el-button>
-
     <el-table v-if="MemVUsage.length > 0" :data="MemVUsage"  class="custom-table">
-      <el-table-column prop="VoucherCode" label="車號"></el-table-column>
+      <el-table-column prop="VoucherCode" label="車號" :sortable="true"></el-table-column>
       <el-table-column label="折抵券張數">
         <template slot-scope="scope">
           <div class="text-button-container">
@@ -18,8 +17,7 @@
       </el-table-column>
       <el-table-column label="操作">
           <template slot-scope="scope">
-            <el-button type="primary" @click="handle(scope.row)">查看預約</el-button>
-            <el-button type="warning" @click="detailed(scope.row)">新增預約</el-button>
+            <el-button type="primary" @click="showDialog(scope.row)">查看預約</el-button>
           </template>
         </el-table-column>
   </el-table>     
@@ -64,8 +62,33 @@
             <el-button type="primary" @click="saveEdit">保存</el-button>
           </div>
     </el-dialog>
-    
 
+    <el-dialog
+      title="預約日期"
+      :visible.sync="dialog"
+      width="50%"
+    >
+      <el-calendar>
+        <template #dateCell="{data}">
+        <div style="margin:0px" @click="calendarOnClick(data)">
+          {{ data.day.split('-').slice(2).join() }}
+          <div v-for="(i, index) in dayTime" :key="index">
+            <div v-if="data.day==i" class="budge">已預約</div>
+          </div>
+        </div>
+      </template>
+    </el-calendar>
+    </el-dialog>
+
+    <el-dialog
+    title="消息"
+    :visible.sync="d"
+    width="30%"
+    :show-close="false"
+  >
+    <p>{{ message }}</p>
+    <el-button type="primary" @click="handleConfirm">確定</el-button>
+  </el-dialog>
     
   </div>
 </template>
@@ -90,22 +113,30 @@ export default {
   },
   data() {
     return {
+      message: '',
       one:0,
+      d:false,
+      DateReserve: false,
       CarView: false,
       dialogVisible: false,
       errorCount:'',
       Count:'',
       Voucher:'',
+      VSid:'',
       MemVUsage: [],
+      dayTime: [],
       editForm: {
           VCount: 0,
           VoucherCode:''
         },
         carNumberForm: {
         carNumber: ''
-      }
+      },
+      dialog: false,
+     
     };
   },
+  
   watch: {
     'editForm.Vcount': function(newValue) {
       this.validateVCount(newValue);
@@ -115,8 +146,41 @@ export default {
     this.fetchUserData();
     console.log(this.MemberName);
   },
-  
   methods: {
+    handleConfirm() {
+      this.message = '';
+      this.d = false; // 关闭弹窗
+    },
+    async calendarOnClick(data){
+      console.log(data.day)
+      try {
+        const response = await axios.post('https://192.168.1.150:443/storedata', {
+          table:'MemVouchers',
+          VSId: this.VSid,
+          VoucherDate:data.day
+        }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+        });
+        if (response.status === 200) {
+          console.log(response.data)
+          this.message = "預約時間："+response.data.UsageStartTime; 
+          this.d=true
+        
+        } else {
+          console.error('數據獲取失敗:', response.status);
+        }
+      } catch (error) {
+        console.error('伺服器有誤:', error);
+      }
+  },
+    showDialog(row) {
+      this.dayTime=[];
+      this.dialog = true;
+      console.log("車號:"+row.SId)
+      this.fetchDates(row.SId); 
+    },
     async saveCarNumber() {
       if(!this.carNumberForm.carNumber){
         alert("車牌號碼不可為空")
@@ -157,6 +221,28 @@ export default {
         if (response.status === 200) {
           this.Voucher = response.data[0].VCount;
           this.fetchMembers();
+        } else {
+          console.error('數據獲取失敗:', response.status);
+        }
+      } catch (error) {
+        console.error('伺服器有誤:', error);
+      }
+    },
+    //
+    async fetchDates(VSid) { 
+      this.VSid=VSid
+      try {
+        const response = await axios.post('https://192.168.1.150:443/storedata', {
+          table:'MemVouchers',
+          VSId: this.VSid
+        }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+        });
+        if (response.status === 200) {
+          this.dayTime = response.data.map(item => item.VoucherDate);
+          console.log(this.dayTime)
         } else {
           console.error('數據獲取失敗:', response.status);
         }
@@ -260,4 +346,12 @@ export default {
   border: 2px solid #0a18d8;
   background-color: #12597a;
 }
+.budge {
+  color: rgb(94, 63, 7);
+  background-color: #f1db9c;
+  margin: 0 auto;
+  margin-top: 10px;
+  padding:5px 0 0 20px;
+}
+
 </style>

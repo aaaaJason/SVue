@@ -7,7 +7,7 @@
 
       <el-table v-if="members.length > 0" :data="members" class="custom-table">
         <el-table-column prop="MemberName" label="會員名稱"></el-table-column>
-        <el-table-column prop="MemberAcc" label="會員帳號"></el-table-column>
+        <el-table-column prop="MemberAcc" label="會員帳號" ></el-table-column>
         <el-table-column label="折抵券張數">
           <template slot-scope="scope">
              <div class="text-button-container">
@@ -17,8 +17,8 @@
           </div>
           </template>
         </el-table-column>
-        <el-table-column prop="StartDate" label="折抵券起日"></el-table-column>
-        <el-table-column prop="EndDate" label="折抵券迄日"></el-table-column>
+        <el-table-column prop="StartDate" label="折抵券起日" :sortable="true"></el-table-column>
+        <el-table-column prop="EndDate" label="折抵券迄日" :sortable="true"></el-table-column>
         <el-table-column prop="Remark" label="備註"></el-table-column>
         <el-table-column label="操作">
       <template slot-scope="scope">
