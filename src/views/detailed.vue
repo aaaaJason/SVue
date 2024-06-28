@@ -18,6 +18,7 @@
       <el-table-column label="操作">
           <template slot-scope="scope">
             <el-button type="primary" @click="showDialog(scope.row)">查看預約</el-button>
+            <el-button type="warning" @click="showcheck(scope.row)">預約停車</el-button>
           </template>
         </el-table-column>
   </el-table>     
@@ -62,7 +63,52 @@
             <el-button type="primary" @click="saveEdit">保存</el-button>
           </div>
     </el-dialog>
+    <!-- 預約停車 -->
+    <el-dialog
+      title="預約停車"
+      :visible.sync="check"
+      width="30%"
+      center
+    >
+      <el-form ref="editForm" :model="editForm"  label-width="120px">
+        <el-form-item label="車號:" required>
+          <el-input v-model="editForm.VoucherCode" placeholder="請輸入車號" disabled=true></el-input>
+        </el-form-item>
+        <el-form-item label="預約日期:" required>
+          <el-date-picker v-model="editForm.VoucherDate"
+            type="date"
+            placeholder="選擇日期"
+            value-format="yyyy-MM-dd"
+            :picker-options="pickerOptions"
+          ></el-date-picker>
+        </el-form-item>
+        <el-form-item label="預約時間:" required>
+          <el-time-picker
+            v-model="editForm.UsageStartTime"
+            placeholder="開始時間"
+            format="HH:mm"
+            value-format="HH:mm"
+          ></el-time-picker>
+        </el-form-item>
+        <el-form-item label="結束時間:" required>
+          <el-time-picker
+            v-model="editForm.UsageEndTime"
+            placeholder="結束時間"
+            format="HH:mm"
+            value-format="HH:mm"
+            disabled=true
+          ></el-time-picker>
+        </el-form-item>
+      </el-form>
 
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="check = false">取消</el-button>
+        <el-button type="primary" @click="submitReservation">確定預約</el-button>
+      </div>
+    </el-dialog>
+
+
+    <!-- 查看預約日期 -->
     <el-dialog
       title="預約日期"
       :visible.sync="dialog"
@@ -73,16 +119,19 @@
         <div style="margin:0px" @click="calendarOnClick(data)">
           {{ data.day.split('-').slice(2).join() }}
           <div v-for="(i, index) in dayTime" :key="index">
-            <div v-if="data.day==i" class="budge">已預約</div>
+            <div v-if="data.day === i.VoucherDate" :class="i.UsageTime ? 'budge-used' : 'budge-reserved'">
+              {{ i.UsageTime ? '已使用' : '已預約' }}
+            </div>
           </div>
+          
         </div>
       </template>
     </el-calendar>
     </el-dialog>
 
     <el-dialog
-    title="消息"
-    :visible.sync="d"
+    title="預約資訊"
+    :visible.sync="booking"
     width="30%"
     :show-close="false"
   >
@@ -95,7 +144,7 @@
 
 <script>
 import axios from 'axios';
-
+import moment from 'moment';
 export default {
   props: {
     MemberAcc: {
@@ -110,36 +159,58 @@ export default {
       type: Number,
       required: true
     },
+    Discount: { 
+      type: Number,
+      required: true
+    },
   },
   data() {
     return {
-      message: '',
-      one:0,
-      d:false,
+      check:false,
+      booking:false,
       DateReserve: false,
       CarView: false,
       dialogVisible: false,
+      dialog: false,
+      message: '',
+      one:0,
       errorCount:'',
       Count:'',
       Voucher:'',
       VSid:'',
+      MerVSid:'',
       MemVUsage: [],
       dayTime: [],
       editForm: {
           VCount: 0,
-          VoucherCode:''
+          VoucherCode:'',
+          VoucherDate:'',
+          UsageStartTime:'',
+          UsageEndTime:''
         },
         carNumberForm: {
         carNumber: ''
       },
-      dialog: false,
-     
+      pickerOptions: {
+        disabledDate(time) {
+          // 禁止选择今天及之前的日期
+          return time.getTime() < Date.now() - 86400000; 
+        }
+      }
     };
   },
   
   watch: {
     'editForm.Vcount': function(newValue) {
       this.validateVCount(newValue);
+    },
+    'editForm.UsageStartTime'(newVal) {
+      if (newVal) {
+        const startTime = moment(newVal, 'HH:mm');
+        const endTime = startTime.add(this.Discount, 'hours').format('HH:mm');
+        console.log(endTime)
+        this.editForm.UsageEndTime = endTime;
+      }
     }
   },
   created() {
@@ -147,9 +218,42 @@ export default {
     console.log(this.MemberName);
   },
   methods: {
+    async submitReservation() {
+      if(!this.editForm.VoucherDate||!this.editForm.UsageEndTime||!this.editForm.UsageStartTime){
+        alert("欄位不可為空")
+        return
+      }
+        try {
+          console.log("MerVSid"+this.MerVSid)
+          const response = await axios.post('https://192.168.1.150:443/insertSuser', {
+            table:'MemVouchers',
+            MerVSid:this.MerVSid,
+            VoucherCode: this.editForm.VoucherCode,
+            VoucherDate:this.editForm.VoucherDate,
+            UsageStartTime:this.editForm.UsageStartTime,
+            UsageEndTime:this.editForm.UsageEndTime
+
+          });
+          if (response.status === 201) {
+            alert('新增成功');
+            this.check = false;
+          } else {
+            alert(response.data.message);
+          }
+        } catch (error) {
+          console.error('新增發生錯誤:', error);
+          alert('新增失敗，請稍後再試');
+        }
+    },
+    showcheck(row) {
+      this.editForm = { ...row }; 
+      this.MerVSid=row.SId
+      this.check = true; 
+     
+    },
     handleConfirm() {
       this.message = '';
-      this.d = false; // 关闭弹窗
+      this.booking = false; 
     },
     async calendarOnClick(data){
       console.log(data.day)
@@ -165,9 +269,19 @@ export default {
         });
         if (response.status === 200) {
           console.log(response.data)
-          this.message = "預約時間："+response.data.UsageStartTime; 
-          this.d=true
-        
+          if(response.data.UsageTime){
+              if(response.data.UsageEndTime<=response.data.UsageStartTime){
+              this.message = "預約時間："+response.data.UsageStartTime+"~次日"+response.data.UsageEndTime+"。使用時間："+this.formatDateTime(response.data.UsageTime); 
+            }else{
+              this.message = "預約時間："+response.data.UsageStartTime+"~"+response.data.UsageEndTime+"。使用時間："+this.formatDateTime(response.data.UsageTime); 
+            }
+          }else if(response.data.UsageEndTime<=response.data.UsageStartTime){
+            this.message = "預約時間："+response.data.UsageStartTime+"~次日"+response.data.UsageEndTime; 
+          }else{
+            this.message = "預約時間："+response.data.UsageStartTime+"~"+response.data.UsageEndTime; 
+          }
+          this.booking=true
+
         } else {
           console.error('數據獲取失敗:', response.status);
         }
@@ -241,8 +355,12 @@ export default {
         }
         });
         if (response.status === 200) {
-          this.dayTime = response.data.map(item => item.VoucherDate);
-          console.log(this.dayTime)
+        //  this.dayTime = response.data.map(item => item.VoucherDate);
+         this.dayTime = response.data.map(item => ({
+          VoucherDate: item.VoucherDate,
+          UsageTime: item.UsageTime
+          }));
+          console.log(JSON.parse(JSON.stringify(this.dayTime)));
         } else {
           console.error('數據獲取失敗:', response.status);
         }
@@ -278,7 +396,7 @@ export default {
     formatDateTime(datetime) {
       const year = datetime.substring(0, 4);
       const month = datetime.substring(5, 7);
-      const day = datetime.substring(7, 10);
+      const day = datetime.substring(8, 10);
       const hours = datetime.substring(11, 13);
       const minutes = datetime.substring(14, 16);
       const seconds = datetime.substring(17, 19);
@@ -346,12 +464,19 @@ export default {
   border: 2px solid #0a18d8;
   background-color: #12597a;
 }
-.budge {
-  color: rgb(94, 63, 7);
-  background-color: #f1db9c;
+.budge-reserved {
+  color: rgb(3, 116, 37);
+  background-color: #40ff11;
   margin: 0 auto;
   margin-top: 10px;
   padding:5px 0 0 20px;
 }
 
+.budge-used {
+  color: rgb(247, 41, 5);
+  background-color: #ebb60a;
+  margin: 0 auto;
+  margin-top: 10px;
+  padding:5px 0 0 20px;
+}
 </style>

@@ -4,6 +4,7 @@
       <h1 style="text-align: center;">單位 - {{ Mname }}</h1>
       <span>商家帳號：{{ MAccount }}</span>
       <p>剩餘抵用券：<span class="voucher" style="color: red; font-size: larger;">{{ Voucher }}</span> 張</p>
+      <p>折抵方式：<span class="voucher" style="color: red; font-size: larger;">{{ formatDiscount(Discount) }}</span> </p>
 
       <el-table v-if="members.length > 0" :data="members" class="custom-table">
         <el-table-column prop="MemberName" label="會員名稱"></el-table-column>
@@ -92,6 +93,7 @@
     
     data() {
       return {
+        Discount:'',
         Mname:'',
         MAccount:'',
         Voucher:'',
@@ -152,6 +154,7 @@
           this.Mname = data.Mname;
           this.MAccount = data.MAccount;
           this.Voucher = data.Voucher;
+          this.Discount=data.Discount;
           this.fetchMembers();
         } else {
           console.error('數據獲取失敗:', response.status);
@@ -199,7 +202,8 @@
           MemberAcc: row.MemberAcc,
           MemberName:row.MemberName,
           VCount:row.VCount,
-          Sid: row.SId 
+          Sid: row.SId,
+          Discount:this.Discount
         }
       });
     },
@@ -265,6 +269,9 @@
 
         }
       },
+      formatDiscount(cellValue) {
+      return cellValue === 24 ? '每張折抵整天' : `每張折抵${cellValue} 小時`;
+    },
     }
  };
   </script>

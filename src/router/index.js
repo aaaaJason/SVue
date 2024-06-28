@@ -45,7 +45,8 @@ const routes = [
       MemberAcc: route.query.MemberAcc,
       MemberName:route.query.MemberName,
       VCount:route.query.VCount,
-      Sid: route.query.Sid
+      Sid: route.query.Sid,
+      Discount: route.query.Discount,
     }),
     meta: { requireAuth: true }
   }
