@@ -6,10 +6,13 @@
       <p>剩餘抵用券：<span class="voucher" style="color: red; font-size: larger;">{{ Voucher }}</span> 張</p>
       <p>折抵方式：<span class="voucher" style="color: red; font-size: larger;">{{ formatDiscount(Discount) }}</span> </p>
 
-      <el-table v-if="members.length > 0" :data="members" class="custom-table">
+      <el-table v-if="membersWithBookingCount.length > 0" :data="membersWithBookingCount" class="custom-table">
         <el-table-column prop="MemberName" label="會員名稱"></el-table-column>
         <el-table-column prop="MemberAcc" label="會員帳號" ></el-table-column>
-        <el-table-column label="折抵券張數">
+        <el-table-column label="已預約次數">
+          <template slot-scope="scope">{{ scope.row.bookingCount }} 次</template>
+        </el-table-column>
+        <el-table-column label="剩餘折抵券張數">
           <template slot-scope="scope">
              <div class="text-button-container">
             <!-- 显示 VCount 的值 -->
@@ -106,6 +109,7 @@
         dialogVisible: false,
         PassdialogVisible: false,
         members: [],
+        memVUsage:[],
         editForm: {
           VCount: '',
           MemberAcc:'',
@@ -123,6 +127,19 @@
   watch: {
     'editForm.Vcount': function(newValue) {
       this.validateVCount(newValue);
+    }
+  },
+  computed: {
+    membersWithBookingCount() {
+      return this.members.map(member => {
+        const bookingCount = this.memVUsage.filter(
+          usage => usage.MerSid === member.SId
+        ).length;
+        return {
+          ...member,
+          bookingCount
+        };
+      });
     }
   },
   methods: {
@@ -155,6 +172,7 @@
           this.MAccount = data.MAccount;
           this.Voucher = data.Voucher;
           this.Discount=data.Discount;
+          this.fetchMemVUsage();
           this.fetchMembers();
         } else {
           console.error('數據獲取失敗:', response.status);
@@ -180,7 +198,24 @@
           }else{
               console.error('請求失敗:', error);
           }
-      }
+         }
+      },
+      async fetchMemVUsage() {
+          try {
+              const response = await axios.post('https://192.168.1.150:443/storedata', {
+                  table:'MemVUsage'
+          });
+        
+            if (response.status === 200) {
+              this.memVUsage = response.data;
+          } 
+      } catch (error) {
+          if(error.response.status === 404){
+              console.log("查無資料");
+          }else{
+              console.error('請求失敗:', error);
+          }
+         }
       },
       handleEdit(row) {
       // 打開編輯對話框，並將行數據填充到編輯表單中

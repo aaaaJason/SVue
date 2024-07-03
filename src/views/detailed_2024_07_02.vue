@@ -3,35 +3,14 @@
     <h1 style="text-align: center;">會員 - {{ MemberName }}</h1>
     <span>會員帳號：{{ MemberAcc }}</span>
     <p>剩餘抵用券：<span class="VCount" style="color: red; font-size: larger;">{{ Voucher }}</span> 張</p>
-    <el-date-picker
-      v-model="dateRange"
-      type="daterange"
-      range-separator="至"
-      start-placeholder="開始日期"
-      end-placeholder="結束日期"
-      @change="filterDataByDateRange"
-      style="margin-bottom: 20px;"
-    ></el-date-picker>
-    <p><el-button type="warning" @click="showcheck">預約停車</el-button></p>
-    <div v-if="dateRange.length === 0" style="text-align: center; color: red;">
-      <h1>請選擇日期區間。</h1>
-    </div>
-
-    <el-table v-else-if="filteredMemVUsage.length > 0" :data="filteredMemVUsage" class="custom-table">
+    <el-button type="warning" @click="showcheck">預約停車</el-button>
+    <el-table v-if="filteredMemVUsage.length > 0" :data="filteredMemVUsage"  class="custom-table">
       <el-table-column prop="VoucherCode" label="車號" :sortable="true"></el-table-column>
-      <el-table-column prop="VoucherDate" label="折抵日期" ></el-table-column>
-      <el-table-column prop="UsageStartTime" label="開始時間" ></el-table-column>
-      <el-table-column prop="UsageEndTime" label="結束時間">
-        <template slot-scope="scope">
-          <span v-if="scope.row.UsageEndTime <= scope.row.UsageStartTime">
-            次日{{ scope.row.UsageEndTime }}
-          </span>
-          <span v-else>
-            {{ scope.row.UsageEndTime }}
-          </span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="UsageTime" label="使用時間" ></el-table-column>
+      <el-table-column label="操作">
+          <template slot-scope="scope">
+            <el-button type="primary" @click="showDialog(scope.row)">查看預約</el-button>
+          </template>
+        </el-table-column>
   </el-table>     
   <div v-else style="text-align: center; color: red;">
     <h1>無車號資料</h1>
@@ -83,6 +62,39 @@
       </div>
     </el-dialog>
 
+
+    <!-- 查看預約日期 -->
+    <el-dialog
+      title="預約日期"
+      :visible.sync="dialog"
+      width="50%"
+    >
+      <el-calendar>
+        <template #dateCell="{data}">
+        <div style="margin:0px" @click="calendarOnClick(data)">
+          {{ data.day.split('-').slice(2).join() }}
+          <div v-for="(i, index) in dayTime" :key="index">
+            <div v-if="data.day === i.VoucherDate" :class="i.UsageTime ? 'budge-used' : 'budge-reserved'">
+              {{ i.UsageTime ? '已使用' : '已預約' }}
+            </div>
+          </div>
+          
+        </div>
+      </template>
+    </el-calendar>
+    </el-dialog>
+
+    <el-dialog
+    title="預約資訊"
+    :visible.sync="booking"
+    width="30%"
+    :show-close="false"
+  >
+    <p>{{ message }}</p>
+    <p>{{ UseAcc }}</p>
+    <el-button type="primary" @click="handleConfirm">確定</el-button>
+  </el-dialog>
+    
   </div>
 </template>
 
@@ -113,6 +125,7 @@ export default {
       check:false,
       booking:false,
       DateReserve: false,
+      dialog: false,
       message: '',
       UseAcc: '',
       errorCount:'',
@@ -122,8 +135,7 @@ export default {
       VSid:'',
       VoucherCode:'',
       MemVUsage: [],
-      dateRange: [], // 日期范围
-      filteredMemVUsage: [], // 过滤后的数据
+      dayTime: [],
       editForm: {
           VCount: 0,
           VoucherCode:'',
@@ -139,7 +151,20 @@ export default {
       }
     };
   },
-
+  computed: {
+    filteredMemVUsage() {
+      // 使用 JavaScript 的 Set 來過濾重複的車號
+      const uniqueCodes = new Set();
+      return this.MemVUsage.filter(item => {
+        if (uniqueCodes.has(item.VoucherCode)) {
+          return false;
+        } else {
+          uniqueCodes.add(item.VoucherCode);
+          return true;
+        }
+      });
+    }
+  },
   watch: {
     'editForm.Vcount': function(newValue) {
       this.validateVCount(newValue);
@@ -158,22 +183,6 @@ export default {
     console.log(this.MemberName);
   },
   methods: {
-    filterDataByDateRange() {
-  if (this.dateRange.length === 2) {
-    const [startDate, endDate] = this.dateRange;
-    // 将 endDate 设置为结束日期的最后时间，以包含当天的所有数据
-    endDate.setHours(23, 59, 59, 999);
-
-    this.filteredMemVUsage = this.MemVUsage.filter(row => {
-      const voucherDate = new Date(row.VoucherDate);
-      return voucherDate >= new Date(startDate) && voucherDate <= endDate;
-    });
-  } else {
-    this.filteredMemVUsage = this.MemVUsage;
-  }
-},
-
-    
     async saveEdit() {
         this.NewVCount=this.Voucher-1
         console.log("扣除折抵券:"+this.Sid+""+this.NewVcount+"張")
@@ -295,6 +304,13 @@ export default {
         console.error('伺服器有誤:', error);
       }
   },
+    showDialog(row) {
+      this.dayTime=[];
+      this.dialog = true;
+      this.VoucherCode=row.VoucherCode
+      console.log("車號:"+this.VoucherCode)
+      this.fetchDates(this.VoucherCode); 
+    },
    
     async fetchUserData() { 
       try {
@@ -317,7 +333,30 @@ export default {
       }
     },
     
-
+    async fetchDates(VoucherCode) { 
+      console.log(VoucherCode)
+      try {
+        const response = await axios.post('https://192.168.1.150:443/storedata', {
+          table:'MemVUsage',
+          VoucherCode:VoucherCode
+        }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+        });
+        if (response.status === 200) {
+         this.dayTime = response.data.map(item => ({
+          VoucherDate: item.VoucherDate,
+          UsageTime: item.UsageTime
+          }));
+          console.log(JSON.parse(JSON.stringify(this.dayTime)));
+        } else {
+          console.error('數據獲取失敗:', response.status);
+        }
+      } catch (error) {
+        console.error('伺服器有誤:', error);
+      }
+    },
     async fetchMembers() {
       try {
         console.log(this.Sid);
