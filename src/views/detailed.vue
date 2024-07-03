@@ -12,12 +12,14 @@
       @change="filterDataByDateRange"
       style="margin-bottom: 20px;"
     ></el-date-picker>
+    <el-button type="primary" @click="clear">清空搜尋條件</el-button>
     <p><el-button type="warning" @click="showcheck">預約停車</el-button></p>
-    <div v-if="dateRange.length === 0" style="text-align: center; color: red;">
-      <h1>請選擇日期區間。</h1>
-    </div>
 
-    <el-table v-else-if="filteredMemVUsage.length > 0" :data="filteredMemVUsage" class="custom-table">
+    <!-- <div v-if="dateRange.length === 0" style="text-align: center; color: red;">
+      <h1>請選擇日期區間。</h1>
+    </div> -->
+
+    <el-table v-if="filteredMemVUsage.length > 0" :data="filteredMemVUsage" class="custom-table">
       <el-table-column prop="VoucherCode" label="車號" :sortable="true"></el-table-column>
       <el-table-column prop="VoucherDate" label="折抵日期" ></el-table-column>
       <el-table-column prop="UsageStartTime" label="開始時間" ></el-table-column>
@@ -156,8 +158,13 @@ export default {
   created() {
     this.fetchUserData();
     console.log(this.MemberName);
+   
   },
   methods: {
+    clear() {
+      this.dateRange = null; // 清空日期範圍
+      this.filteredMemVUsage = this.MemVUsage.slice(0, 20); // 恢復顯示所有資料
+    },
     filterDataByDateRange() {
   if (this.dateRange.length === 2) {
     const [startDate, endDate] = this.dateRange;
@@ -328,6 +335,7 @@ export default {
 
         if (response.status === 200) {
           this.MemVUsage = response.data;
+          this.filteredMemVUsage = this.MemVUsage.slice(0, 20);
         } 
       } catch (error) {
         if (error.response.status === 404) {
