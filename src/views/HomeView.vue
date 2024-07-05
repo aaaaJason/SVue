@@ -157,7 +157,7 @@
     },
     async fetchStoreData() { // 將 getAPI 改名為 fetchStoreData
       try {
-        const response = await axios.post('https://192.168.1.150:443/Storemaindata', {
+        const response = await axios.post('http://192.168.1.150:2224/Storemaindata', {
           MAccount: this.username
         }, {
         headers: {
@@ -184,7 +184,7 @@
     async fetchMembers() {
           try {
               console.log(this.Sid);
-              const response = await axios.post('https://192.168.1.150:443/storedata', {
+              const response = await axios.post('http://192.168.1.150:2224/storedata', {
                   SId: this.Sid,
                   table:'MerMembers'
           });
@@ -202,7 +202,7 @@
       },
       async fetchMemVUsage() {
           try {
-              const response = await axios.post('https://192.168.1.150:443/storedata', {
+              const response = await axios.post('http://192.168.1.150:2224/storedata', {
                   table:'MemVUsage'
           });
         
@@ -257,7 +257,7 @@
         }
         this.NewVoucher=this.Voucher-this.one
         try {
-          const response = await axios.put('https://192.168.1.150:443/voucher', {
+          const response = await axios.put('http://192.168.1.150:2224/voucher', {
             table:'MerMembers',
             MemberAcc: this.editForm.MemberAcc,
             NewVCount:this.Count,
@@ -286,7 +286,7 @@
           return
         }
         try {
-          const response = await axios.put('https://192.168.1.150:443/updateSuser', {
+          const response = await axios.put('http://192.168.1.150:2224/updateSuser', {
             MemberAcc: this.editForm.MemberAcc,
             StartDate: this.editForm.StartDate,
             EndDate: this.editForm.EndDate,

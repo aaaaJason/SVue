@@ -67,7 +67,7 @@ export default {
     },
     async fetchStoreData() { // 取商家Sid 新增庫戶資料
       try {
-        const response = await axios.post('https://192.168.1.150:443/Storemaindata', {
+        const response = await axios.post('http://192.168.1.150:2224/Storemaindata', {
           MAccount: this.username
         }, {
         headers: {
@@ -92,7 +92,7 @@ export default {
         return
       }
         try {
-          const response = await axios.post('https://192.168.1.150:443/insertSuser', {
+          const response = await axios.post('http://192.168.1.150:2224/insertSuser', {
             table:'MerMembers',
             MerSNumber:this.Sid,
             MemberAcc: this.MemberAcc,
