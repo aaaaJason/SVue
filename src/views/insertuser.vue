@@ -57,7 +57,7 @@ export default {
   methods: {
     getUsernameFromCookie() {
       // 使用 js-cookie 库从 Cookie 中获取存储的用户名
-      const login = Cookies.get('login');
+      const login = Cookies.get('login_store');
       if (login) {
         // 如果 Cookie 中存在用户名，将其赋值给组件的数据属性
         const parsedLogin = JSON.parse(login);//解析JSON
@@ -67,7 +67,7 @@ export default {
     },
     async fetchStoreData() { // 取商家Sid 新增庫戶資料
       try {
-        const response = await axios.post('http://192.168.1.150:2224/Storemaindata', {
+        const response = await axios.post('http://192.168.1.150:2228/Storemaindata', {
           MAccount: this.username
         }, {
         headers: {
@@ -92,7 +92,7 @@ export default {
         return
       }
         try {
-          const response = await axios.post('http://192.168.1.150:2224/insertSuser', {
+          const response = await axios.post('http://192.168.1.150:2228/insertSuser', {
             table:'MerMembers',
             MerSNumber:this.Sid,
             MemberAcc: this.MemberAcc,

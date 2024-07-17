@@ -44,7 +44,7 @@ export default {
   methods: {
     async login() {
       try {
-        const response = await fetch('http://192.168.1.150:2224/storelogin', {
+        const response = await fetch('http://192.168.1.150:2228/storelogin', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -60,8 +60,8 @@ export default {
           const token = data.token; // 确保 token 来自响应数据
           this.loginForm.token = token; // 使用 token 初始化 loginForm 的 token
           console.log(this.loginForm);
-          Cookies.set('login', JSON.stringify(this.loginForm), { expires: 1 });
-          if (Cookies.get('login') && this.loginForm.token) {
+          Cookies.set('login_store', JSON.stringify(this.loginForm), { expires: 1 });
+          if (Cookies.get('login_store') && this.loginForm.token) {
             this.$router.push('/main');
             window.location.reload();
           }

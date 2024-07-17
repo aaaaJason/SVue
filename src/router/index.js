@@ -42,6 +42,8 @@ const routes = [
     name: 'detailed',
     component: detailed,
     props: route => ({
+      StartDate:  route.query.StartDate,
+      EndDate:  route.query.EndDate,
       MemberAcc: route.query.MemberAcc,
       MemberName:route.query.MemberName,
       VCount:route.query.VCount,
@@ -67,7 +69,7 @@ router.beforeEach((to, from, next) => {
   // 目标路由在 meta 上是否有设置 requireAuth: true
   if (to.meta.requireAuth) {
     // 获取 Cookies 中的 login 信息并解析出 token
-    const info = Cookies.get('login');
+    const info = Cookies.get('login_store');
     
     // 如果 info 存在且可以解析
     if (info) {

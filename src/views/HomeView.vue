@@ -149,7 +149,7 @@
       this.editForm = { ...row }; // 使用對象展開運算符複製行數據到編輯表單中
     },
     getUser() {
-      const login = Cookies.get('login');
+      const login = Cookies.get('login_store');
       if (login) {
         const parsedLogin = JSON.parse(login);
         this.username = parsedLogin.username;
@@ -157,7 +157,7 @@
     },
     async fetchStoreData() { // 將 getAPI 改名為 fetchStoreData
       try {
-        const response = await axios.post('http://192.168.1.150:2224/Storemaindata', {
+        const response = await axios.post('http://192.168.1.150:2228/Storemaindata', {
           MAccount: this.username
         }, {
         headers: {
@@ -184,7 +184,7 @@
     async fetchMembers() {
           try {
               console.log(this.Sid);
-              const response = await axios.post('http://192.168.1.150:2224/storedata', {
+              const response = await axios.post('http://192.168.1.150:2228/storedata', {
                   SId: this.Sid,
                   table:'MerMembers'
           });
@@ -202,7 +202,7 @@
       },
       async fetchMemVUsage() {
           try {
-              const response = await axios.post('http://192.168.1.150:2224/storedata', {
+              const response = await axios.post('http://192.168.1.150:2228/storedata', {
                   table:'MemVUsage'
           });
         
@@ -234,6 +234,8 @@
       this.$router.push({ 
         name: 'detailed',
         query: {
+          StartDate: row.StartDate,
+          EndDate: row.EndDate,
           MemberAcc: row.MemberAcc,
           MemberName:row.MemberName,
           VCount:row.VCount,
@@ -257,7 +259,7 @@
         }
         this.NewVoucher=this.Voucher-this.one
         try {
-          const response = await axios.put('http://192.168.1.150:2224/voucher', {
+          const response = await axios.put('http://192.168.1.150:2228/voucher', {
             table:'MerMembers',
             MemberAcc: this.editForm.MemberAcc,
             NewVCount:this.Count,
@@ -286,7 +288,7 @@
           return
         }
         try {
-          const response = await axios.put('http://192.168.1.150:2224/updateSuser', {
+          const response = await axios.put('http://192.168.1.150:2228/updateSuser', {
             MemberAcc: this.editForm.MemberAcc,
             StartDate: this.editForm.StartDate,
             EndDate: this.editForm.EndDate,

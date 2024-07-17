@@ -59,6 +59,8 @@
             value-format="yyyy-MM-dd"
             :picker-options="pickerOptions"
           ></el-date-picker>
+          <p>折抵期限起日：<span  style="color: red; font-size: larger;">{{ StartDate }}</span></p>
+          <p>折抵期限迄日：<span  style="color: red; font-size: larger;">{{ EndDate }}</span></p>
         </el-form-item>
         <el-form-item label="預約時間:" required>
           <el-time-picker
@@ -109,6 +111,14 @@ export default {
       type: Number,
       required: true
     },
+    StartDate: { 
+      type: Number,
+      required: true
+    },
+    EndDate: { 
+      type: Number,
+      required: true
+    },
   },
   data() {
     return {
@@ -133,12 +143,7 @@ export default {
           UsageStartTime:'',
           UsageEndTime:'',
         },
-      pickerOptions: {
-        disabledDate(time) {
-          // 禁止选择今天及之前的日期
-          return time.getTime() < Date.now() - 86400000; 
-        }
-      }
+      pickerOptions: { }
     };
   },
 
@@ -158,6 +163,11 @@ export default {
   created() {
     this.fetchUserData();
     console.log(this.MemberName);
+    this.pickerOptions.disabledDate = (time) => {
+      const startTime = new Date(this.StartDate).setHours(0, 0, 0, 0); // 设置为当天的开始
+      const endTime = new Date(this.EndDate).setHours(23, 59, 59, 999); // 设置为当天的结束
+      return time.getTime() < startTime || time.getTime() > endTime ||time.getTime() < Date.now() - 86400000;
+    };
    
   },
   methods: {
@@ -185,7 +195,7 @@ export default {
         this.NewVCount=this.Voucher-1
         console.log("扣除折抵券:"+this.Sid+""+this.NewVcount+"張")
         try {
-          const response = await axios.put('http://192.168.1.150:2224/voucher', {
+          const response = await axios.put('http://192.168.1.150:2228/voucher', {
             table:'MerMembers',
             Sid:this.Sid,
             NewVCount:this.NewVCount
@@ -209,14 +219,26 @@ export default {
         return
       }
         try {
+          let NewVoucherDate = this.editForm.VoucherDate;
+          if(this.editForm.UsageEndTime<=this.editForm.UsageStartTime)
+            {
+              // 跨日
+              NewVoucherDate = new Date(this.editForm.VoucherDate);
+              NewVoucherDate.setDate(NewVoucherDate.getDate() + 1);
+              let year = NewVoucherDate.getFullYear();
+              let month = (NewVoucherDate.getMonth() + 1).toString().padStart(2, '0');
+              let day = NewVoucherDate.getDate().toString().padStart(2, '0');
+              NewVoucherDate = `${year}-${month}-${day}`;
+          }
+          
           console.log("MerSid"+this.Sid)
-          const response = await axios.post('http://192.168.1.150:2224/insertSuser', {
+          const response = await axios.post('http://192.168.1.150:2228/insertSuser', {
             table:'MemVUsage',
             MerVSid:this.Sid,
             VoucherCode: this.editForm.VoucherCode,
             VoucherDate:this.editForm.VoucherDate,
-            UsageStartTime:this.editForm.UsageStartTime,
-            UsageEndTime:this.editForm.UsageEndTime
+            UsageStartTime:this.editForm.VoucherDate+"  "+this.editForm.UsageStartTime,
+            UsageEndTime:NewVoucherDate+"  "+this.editForm.UsageEndTime
 
           });
           if (response.status === 201) {
@@ -234,10 +256,17 @@ export default {
         }
     },
     showcheck() {
+      const currentDate = new Date();
+      const endDate = new Date(this.EndDate);
       if(this.Voucher==0){
         alert("已無折抵券可使用");
         return
       }
+      if(currentDate>endDate){
+        alert("折抵期限已過期");
+        return
+      }
+      console.log("折抵期限起日:"+this.StartDate+"折抵期限迄日:"+this.EndDate)
       this.check = true; 
      
     },
@@ -247,7 +276,7 @@ export default {
     },
     async fetchUseAcc() { 
       try {
-        const response = await axios.post('http://192.168.1.150:2224/storedata', {
+        const response = await axios.post('http://192.168.1.150:2228/storedata', {
           table:'MerMembers',
           ASId: this.UseAccType
         }, {
@@ -268,7 +297,7 @@ export default {
       console.log(data.day)
       console.log(this.VoucherCode)
       try {
-        const response = await axios.post('http://192.168.1.150:2224/storedata', {
+        const response = await axios.post('http://192.168.1.150:2228/storedata', {
           table:'MemVUsage',
           VoucherCode: this.VoucherCode,
           VoucherDate:data.day
@@ -305,7 +334,7 @@ export default {
    
     async fetchUserData() { 
       try {
-        const response = await axios.post('http://192.168.1.150:2224/storedata', {
+        const response = await axios.post('http://192.168.1.150:2228/storedata', {
           table:'MerMembers',
           MSId: this.Sid
         }, {
@@ -328,7 +357,7 @@ export default {
     async fetchMembers() {
       try {
         console.log(this.Sid);
-        const response = await axios.post('http://192.168.1.150:2224/storedata', {
+        const response = await axios.post('http://192.168.1.150:2228/storedata', {
           SId: this.Sid,
           table: 'MemVUsage'
         });

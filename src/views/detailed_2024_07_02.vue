@@ -187,7 +187,7 @@ export default {
         this.NewVCount=this.Voucher-1
         console.log("扣除折抵券:"+this.Sid+""+this.NewVcount+"張")
         try {
-          const response = await axios.put('http://192.168.1.150:2224/voucher', {
+          const response = await axios.put('http://192.168.1.150:2228/voucher', {
             table:'MerMembers',
             Sid:this.Sid,
             NewVCount:this.NewVCount
@@ -212,7 +212,7 @@ export default {
       }
         try {
           console.log("MerSid"+this.Sid)
-          const response = await axios.post('http://192.168.1.150:2224/insertSuser', {
+          const response = await axios.post('http://192.168.1.150:2228/insertSuser', {
             table:'MemVUsage',
             MerVSid:this.Sid,
             VoucherCode: this.editForm.VoucherCode,
@@ -249,7 +249,7 @@ export default {
     },
     async fetchUseAcc() { 
       try {
-        const response = await axios.post('http://192.168.1.150:2224/storedata', {
+        const response = await axios.post('http://192.168.1.150:2228/storedata', {
           table:'MerMembers',
           ASId: this.UseAccType
         }, {
@@ -270,7 +270,7 @@ export default {
       console.log(data.day)
       console.log(this.VoucherCode)
       try {
-        const response = await axios.post('http://192.168.1.150:2224/storedata', {
+        const response = await axios.post('http://192.168.1.150:2228/storedata', {
           table:'MemVUsage',
           VoucherCode: this.VoucherCode,
           VoucherDate:data.day
@@ -314,7 +314,7 @@ export default {
    
     async fetchUserData() { 
       try {
-        const response = await axios.post('http://192.168.1.150:2224/storedata', {
+        const response = await axios.post('http://192.168.1.150:2228/storedata', {
           table:'MerMembers',
           MSId: this.Sid
         }, {
@@ -336,7 +336,7 @@ export default {
     async fetchDates(VoucherCode) { 
       console.log(VoucherCode)
       try {
-        const response = await axios.post('http://192.168.1.150:2224/storedata', {
+        const response = await axios.post('http://192.168.1.150:2228/storedata', {
           table:'MemVUsage',
           VoucherCode:VoucherCode
         }, {
@@ -360,7 +360,7 @@ export default {
     async fetchMembers() {
       try {
         console.log(this.Sid);
-        const response = await axios.post('http://192.168.1.150:2224/storedata', {
+        const response = await axios.post('http://192.168.1.150:2228/storedata', {
           SId: this.Sid,
           table: 'MemVUsage'
         });
